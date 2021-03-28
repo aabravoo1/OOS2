@@ -1,5 +1,8 @@
 package observer;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class SimpleObservable<T> implements Observable<T> {
     private boolean changed = false;
     private List<Observer<T>> observers;
@@ -9,12 +12,12 @@ public class SimpleObservable<T> implements Observable<T> {
     }
 
     @Override
-    public void addObserver(Observer o) {
+    public void addObserver(Observer<T> o) {
         observers.add(o);
     }
 
     @Override
-    public void deleteObserver(Observer o) {
+    public void deleteObserver(Observer<T> o) {
         observers.remove(o);
     }
 
@@ -28,7 +31,7 @@ public class SimpleObservable<T> implements Observable<T> {
         if(!changed)
             return;
         clearChanged();
-        for (Observer o: observers) {
+        for (Observer<T> o: observers) {
             o.update(this,arg);
         }
     }
