@@ -1,5 +1,6 @@
 package senser;
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 //hello
 import org.json.JSONArray;
@@ -9,7 +10,7 @@ import jsonstream.*;
 public class Senser implements Runnable
 {
 	PlaneDataServer server;
-	Pattern sentence = Pattern.compile("\\[(.*?)\\],");
+	//Pattern sentence = Pattern.compile("\\[(.*?)\\],");
 
 	public Senser(PlaneDataServer server)
 	{
@@ -22,22 +23,23 @@ public class Senser implements Runnable
 		return list;
 	}
 	
-	private void observeSentences() {
-		String list = getSentence();
-		Matcher m = sentence.matcher(list);
-		while(m.find()) {
-			System.out.println(m.group());
-		}
-	}
 	
 	public void run()
 	{
-		//String[] aircraftList;
+		ArrayList<AircraftSentence> aircraftList;
 		//JSONArray planeArray;
+		AirplaneSentenceFactory factory = new AirplaneSentenceFactory();
+		AircraftDisplay display = new AircraftDisplay();
 		
 		while (true)
 		{
-			observeSentences();
+			//get array list from AircraftSentence factory
+			aircraftList = factory.getArray(getSentence()); 
+			//iterate through arraylist
+			System.out.println("Current aircraft in range: " + aircraftList.size() + "\n");
+			for(int i = 0; i < aircraftList.size(); i++) {
+				display.display(aircraftList.get(i));
+			}
 			
 			
 			//planeArray = server.getPlaneArray();
