@@ -6,8 +6,9 @@ import java.util.regex.Matcher;
 import org.json.JSONArray;
 
 import jsonstream.*;
+import observer.SimpleObservable;
 
-public class Senser implements Runnable
+public class Senser extends SimpleObservable<AircraftSentence> implements Runnable 
 {
 	PlaneDataServer server;
 	//Pattern sentence = Pattern.compile("\\[(.*?)\\],");
@@ -38,7 +39,9 @@ public class Senser implements Runnable
 			//iterate through arraylist
 			System.out.println("Current aircraft in range: " + aircraftList.size() + "\n");
 			for(int i = 0; i < aircraftList.size(); i++) {
-				display.display(aircraftList.get(i));
+				//display.display(aircraftList.get(i));
+				setChanged();
+				notifyObservers(aircraftList.get(i));
 			}
 			
 			

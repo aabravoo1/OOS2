@@ -1,4 +1,5 @@
 import jsonstream.*;
+import messer.Messer;
 import senser.Senser;
 
 public class OOS2Lab1Starter
@@ -18,7 +19,11 @@ public class OOS2Lab1Starter
 			server = new PlaneDataServer(latitude, longitude, 150);
 
 		Senser senser = new Senser(server);
+		Messer messer = new Messer();
+		senser.addObserver(messer);
+		
 		new Thread(server).start();
 		new Thread(senser).start();
+		new Thread(messer).start();
 	}
 }

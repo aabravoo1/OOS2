@@ -8,13 +8,13 @@ import java.util.Date;
 public class BasicAircraft {
 	private String icao;
 	private String operator;
-	private Date posTime;
+	private String posTime;
 	private Coordinate coordinate;
 	private Double speed;
 	private Double trak;
 
 	
-	public BasicAircraft (String icao, String operator, Date posTime, Coordinate coordinate, double speed, double trak) {
+	public BasicAircraft (String icao, String operator, String posTime, Coordinate coordinate, double speed, double trak) {
 		this.icao = icao;
 		this.operator = operator;
 		this.posTime = posTime;
@@ -32,7 +32,7 @@ public class BasicAircraft {
 		return operator;
 	}
 
-	public Date getPosTime() {
+	public String getPosTime() {
 		return posTime;
 	}
 
