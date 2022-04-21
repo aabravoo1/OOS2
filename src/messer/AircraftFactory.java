@@ -24,7 +24,23 @@ public class AircraftFactory {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}*/
-		BasicAircraft aircraftData = new BasicAircraft(data[0], data[1], data[3], coords, Double.parseDouble(data[9]), Double.parseDouble(data[10]));//create aircraft sentence
+		double speed = 0;
+		double trak  = 0;
+		try {
+			speed = Double.parseDouble(data[9]);
+		}catch(NumberFormatException e) {
+			if(data[9] == "-0") {
+				speed = 0;
+			}
+		}
+		try {
+			trak = Double.parseDouble(data[10]);
+		}catch(NumberFormatException e) {
+			if(data[9] == "-0") {
+				trak = 0;
+			}
+		}
+		BasicAircraft aircraftData = new BasicAircraft(data[0], data[1], data[3], coords, speed, trak);//create aircraft sentence
 
 		return aircraftData;
 	}
