@@ -53,6 +53,12 @@ public class BasicAircraft {
 		ArrayList<String> attributes = new ArrayList<String>();
 
 		// TODO: return needed names
+		attributes.add("icao");
+		attributes.add("operator");
+		attributes.add("posTime");
+		attributes.add("coordinates");
+		attributes.add("speed");
+		attributes.add("trak");
 		
 		return attributes;
 	}
@@ -62,6 +68,12 @@ public class BasicAircraft {
 		ArrayList<Object> attributes = new ArrayList<Object>();
 
 		// TODO: return needed values
+		attributes.add(ac.getIcao());
+		attributes.add(ac.getOperator());
+		attributes.add(ac.getPosTime());
+		attributes.add(ac.getCoordinate());
+		attributes.add(ac.getSpeed());
+		attributes.add(ac.getTrak());
 
 		return attributes;
 	}

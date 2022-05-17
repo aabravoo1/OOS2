@@ -44,22 +44,28 @@ public class OOS2Lab4ActiveAircraftsTest
 			
 			System.out.println("Aircrafts in Hashtable " + aircrafts.size());
 			for(BasicAircraft ba : aircrafts) {
-				System.out.println(ba);
+				//System.out.println(ba);
+			}
+			
+			
+			
+			// put this into comments while testing the hashtable alone
+			
+			if(aircrafts.size() > 0) {
+				BasicAircraft ba1 = aircrafts.get(0);
+
+				System.out.println("\nData for Aircraft  " + ba1.getIcao());
+				ArrayList<String> attributesNames = BasicAircraft.getAttributesNames();
+				ArrayList<Object> attributesValues = BasicAircraft.getAttributesValues(ba1);
+				for(int i = 0;i < attributesNames.size();i++) {
+					System.out.println("Name " + attributesNames.get(i) + "\tValue " + attributesValues.get(i));
+				}
 			}
 		}
 		
 		
-		// put this into comments while testing the hashtable alone
-		/*
-		BasicAircraft ba1 = aircrafts.get(0);
-
-		System.out.println("\nData for Aircraft  " + ba1.getIcao());
-		ArrayList<String> attributesNames = BasicAircraft.getAttributesNames();
-		ArrayList<Object> attributesValues = BasicAircraft.getAttributesValues(ba1);
-		for(int i = 0;i < attributesNames.size();i++) {
-			System.out.println("Name " + attributesNames.get(i) + "\tValue " + attributesValues.get(i));
-		}
-		*/
+		
+		
 
 	}
 }

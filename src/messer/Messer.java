@@ -3,13 +3,15 @@ package messer;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 
+import acamo.ActiveAircrafts;
 import jsonstream.PlaneDataServer;
 import observer.Observable;
 import observer.Observer;
+import observer.SimpleObservable;
 import senser.AircraftSentence;
 
 
-public class Messer implements Observer<AircraftSentence>, Runnable{
+public class Messer extends SimpleObservable<BasicAircraft> implements Observer<AircraftSentence>, Runnable{
 	ArrayBlockingQueue<AircraftSentence> buffer;
 	
 	//LINKED BLOCKING QUEUE
@@ -35,11 +37,20 @@ public class Messer implements Observer<AircraftSentence>, Runnable{
 		while(true) {
 			AircraftDisplay display = new AircraftDisplay();
 			AircraftFactory factory = new AircraftFactory();
+			AircraftSentence sentence = null;
 			try {
-				display.display(factory.getAircraft(buffer.take()));
+				//display.display(factory.getAircraft(buffer.take()));
+				 sentence = buffer.take();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}
+			BasicAircraft aircraft = factory.getAircraft(sentence);
+			
+			if(aircraft.getIcao() != null) {
+				setChanged();
+				notifyObservers(aircraft);
+				
 			}
 		}
 	}
@@ -50,6 +61,8 @@ public class Messer implements Observer<AircraftSentence>, Runnable{
 		AircraftFactory fact = new AircraftFactory();
 		System.out.println(fact.getAircraft(aircraft));
 	}
+
+	
 
 
 	

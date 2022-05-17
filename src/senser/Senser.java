@@ -37,7 +37,7 @@ public class Senser extends SimpleObservable<AircraftSentence> implements Runnab
 			//get array list from AircraftSentence factory
 			aircraftList = factory.getArray(getSentence()); 
 			//iterate through arraylist
-			System.out.println("Current aircraft in range: " + aircraftList.size() + "\n");
+			//System.out.println("Current aircraft in range: " + aircraftList.size() + "\n");
 			for(int i = 0; i < aircraftList.size(); i++) {
 				//display.display(aircraftList.get(i));
 				setChanged();
