@@ -55,6 +55,4 @@ public class ActiveAircrafts implements ActiveAircraftsInterface, Observer<Basic
 		this.activeAircraft.put(newValue.getIcao(), newValue);
 	}
 
-	
-
 }

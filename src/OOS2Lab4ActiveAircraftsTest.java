@@ -47,8 +47,6 @@ public class OOS2Lab4ActiveAircraftsTest
 				//System.out.println(ba);
 			}
 			
-			
-			
 			// put this into comments while testing the hashtable alone
 			
 			if(aircrafts.size() > 0) {
@@ -63,9 +61,5 @@ public class OOS2Lab4ActiveAircraftsTest
 			}
 		}
 		
-		
-		
-		
-
 	}
 }

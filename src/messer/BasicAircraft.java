@@ -36,8 +36,9 @@ public class BasicAircraft {
 		return posTime;
 	}
 
-	public Coordinate getCoordinate() {
-		return coordinate;
+	public String getCoordinate() {
+		//return coordinate;
+		return coordinate.getLatitude() + ", " + coordinate.getLongitude();
 	}
 
 	public double getSpeed() {
