@@ -19,7 +19,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class Acamo extends Application implements  Observer<BasicAircraft> {
@@ -34,6 +37,8 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     private ActiveAircrafts activeAircrafts;
     private ArrayList<Label> aircraftLabelList;
     private int selectedIndex = 0;
+    
+    final VBox aircraftBox = new VBox();
 
 	public void start(Stage stage) throws Exception {
 		// TODO Auto-generated method stub
@@ -70,18 +75,60 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		table.setEditable(false);
 		table.autosize();
 		
+		final Label activeLabel = new Label("Active Aircrafts");
+		activeLabel.setFont(new Font("Arial", 20));
+		
+		final VBox tableBox = new VBox();
+		tableBox.setSpacing(5);
+		tableBox.setPadding(new Insets(10,0,0,10));
+		tableBox.getChildren().addAll(activeLabel,table);
+		
+		final Label selectedLabel = new Label("Selected");
+		selectedLabel.setFont(new Font("Arial", 20));
+		
+		final VBox selectedBox = new VBox();
+		selectedBox.setSpacing(5);
+		selectedBox.setPadding(new Insets(10,0,0,10));
+		selectedBox.getChildren().addAll(selectedLabel);
+		
+		for(int i = 0; i<fields.size(); i++) {//set ids for selected aircraft
+			final Label fieldLabel = new Label(fields.get(i));
+			fieldLabel.setFont(new Font("Arial", 15));
+			selectedBox.getChildren().add(fieldLabel);
+		}
+		
+		final Label aircraftLabel = new Label("Aircraft");
+		aircraftLabel.setFont(new Font("Arial", 20));
 		
 		
+		aircraftBox.setSpacing(5);
+		aircraftBox.setPadding(new Insets(10,0,0,10));
+		
+		/*//final LabelList aircraft
+		for(int i = 0; i<fields.size(); i++) {
+			aircraftLabelMap.put(fields.get(i), aircraftLabel);
+			aircraftLabelList.add(aircraftLabel);
+		}*/
+		//aircraftBox.getChildren().addAll(aircraftLabelList);
+		aircraftBox.getChildren().addAll(aircraftLabel);
+		
+		HBox root = new HBox();
+		root.setSpacing(10);
+		root.setPadding(new Insets(15,20,10,10));
+		
+		root.getChildren().addAll(tableBox,selectedBox,aircraftBox);
 		
 		
 		//create layout of the table and pane for selected aircraft
 		
-		StackPane root = new StackPane();
-	    root.setPadding(new Insets(5));
-	    root.getChildren().add(table);
+		Scene scene = new Scene(root);
+	    //root.setPadding(new Insets(5));
+	    //root.getChildren().add(table);
 	    		    	 
 	    stage.setTitle("TableView ACAMO");
-		Scene scene = new Scene(root, 485, 300);
+		//Scene scene = new Scene(root, 485, 300);
+	    stage.sizeToScene();
+	    stage.setOnCloseRequest(e -> System.exit(0));
 	    stage.setScene(scene);
 	    stage.show();
 		//Add event handler for selected aircraft
@@ -102,9 +149,27 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 				// TODO Auto-generated method stub
 				aircraftList.clear();
 				aircraftList.addAll(activeAircrafts.values());
+				refresh();
 			}
 			
 		});		
+	}
+	
+	public void refresh() {
+		aircraftBox.getChildren().clear();
+		
+		final Label aircraftLabel = new Label("Aircraft");
+		aircraftLabel.setFont(new Font("Arial", 20));
+		aircraftBox.getChildren().addAll(aircraftLabel);
+		
+		fields = BasicAircraft.getAttributesNames();
+		ArrayList<Object> attributesValues = BasicAircraft.getAttributesValues(aircraftList.get(0));
+		
+		for(int i = 0; i<6; i++) {//set values for selected aircraft
+			final Label fieldLabel = new Label(attributesValues.get(i).toString());
+			fieldLabel.setFont(new Font("Arial", 15));
+			aircraftBox.getChildren().add(fieldLabel);
+		}
 	}
 	
 	public static void main(String[] args) {
