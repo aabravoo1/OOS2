@@ -14,12 +14,14 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -77,6 +79,21 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		table.setEditable(false);
 		table.autosize();
 		table.setPlaceholder(new Label("Waiting for Planes"));
+		
+		table.setOnMousePressed(new EventHandler<MouseEvent>() {
+
+			@Override
+			public void handle(MouseEvent event) {
+				// TODO Auto-generated method stub
+				if(event.isPrimaryButtonDown()) {
+					selectedIndex = table.getSelectionModel().getSelectedIndex();
+					
+					selectedAircraft = table.getSelectionModel().getSelectedItem();
+					refresh(selectedAircraft);
+				}
+			}
+			
+		});
 		
 		final Label activeLabel = new Label("Active Aircrafts");
 		activeLabel.setFont(new Font("Arial", 20));
@@ -137,7 +154,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		//Add event handler for selected aircraft
 	    
 	    
-	    
+	    /*
 	    ObservableList<BasicAircraft> selectedItems = table.getSelectionModel().getSelectedItems();
 
     	selectedItems.addListener(
@@ -148,13 +165,13 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     	        //System.out.println(
     	          //"Selection changed: " + change.getList());
     	        
-    	        selectedIndex = table.getSelectionModel().getSelectedIndex();
+    	        //selectedIndex = table.getSelectionModel().getSelectedIndex();
     	        selectedAircraft = table.getSelectionModel().getSelectedItem();
     	        System.out.println("Selection index: " + selectedIndex);
     	        System.out.println("selected aircraft: " + selectedAircraft);
-    	        refresh();
+    	        refresh(selectedAircraft);
     	      }
-    	});
+    	});*/
 		
 	}
 
@@ -174,16 +191,16 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 				table.getSelectionModel().select(selectedIndex);
 				//selectedIndex = table.getSelectionModel().getSelectedIndex();
 				//selectedAircraft = aircraftList.get(0);
-				//selectedAircraft = table.getSelectionModel().getSelectedItem();
-				System.out.println("selected aircraft: " + selectedAircraft);
-				System.out.println("selected index: " + selectedIndex);
-				refresh();
+				BasicAircraft selectedAircraft = table.getSelectionModel().getSelectedItem();
+				//System.out.println("selected aircraft: " + selectedAircraft);
+				//System.out.println("selected index: " + selectedIndex);
+				refresh(selectedAircraft);
 			}
 			
 		});		
 	}
 	
-	public void refresh() {
+	public void refresh(BasicAircraft selectedAircraft) {
 		//table.getSelectionModel().select(selectedIndex);
 		
 		aircraftBox.getChildren().clear();
@@ -193,7 +210,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		aircraftBox.getChildren().addAll(aircraftLabel);
 		
 		//fields = BasicAircraft.getAttributesNames();
-		ArrayList<Object> attributesValues = BasicAircraft.getAttributesValues(this.selectedAircraft);
+		ArrayList<Object> attributesValues = BasicAircraft.getAttributesValues(selectedAircraft);
 		
 		for(int i = 0; i<6; i++) {//set values for selected aircraft
 			final Label fieldLabel = new Label(attributesValues.get(i).toString());

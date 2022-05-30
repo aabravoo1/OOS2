@@ -36,9 +36,9 @@ public class BasicAircraft {
 		return posTime;
 	}
 
-	public String getCoordinate() {
-		//return coordinate;
-		return coordinate.getLatitude() + ", " + coordinate.getLongitude();
+	public Coordinate getCoordinate() {
+		return coordinate;
+		//return Double.toString(coordinate.getLatitude()) + ", " + Double.toString(coordinate.getLongitude());
 	}
 
 	public double getSpeed() {
@@ -57,7 +57,7 @@ public class BasicAircraft {
 		attributes.add("icao");
 		attributes.add("operator");
 		attributes.add("posTime");
-		attributes.add("coordinates");
+		attributes.add("coordinate");
 		attributes.add("speed");
 		attributes.add("trak");
 		
