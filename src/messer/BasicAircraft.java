@@ -12,6 +12,7 @@ public class BasicAircraft {
 	private Coordinate coordinate;
 	private Double speed;
 	private Double trak;
+	private boolean marker = false;
 
 	
 	public BasicAircraft (String icao, String operator, String posTime, Coordinate coordinate, double speed, double trak) {
@@ -47,6 +48,14 @@ public class BasicAircraft {
 
 	public double getTrak() {
 		return trak;
+	}
+	
+	public void setMarker(boolean marker) {
+		this.marker = marker;
+	}
+	
+	public boolean getMarker() {
+		return this.marker;
 	}
 	
 	public static ArrayList<String> getAttributesNames()

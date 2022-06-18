@@ -44,11 +44,17 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     private ArrayList<String> fields;
     private TableView<BasicAircraft> table = new TableView<BasicAircraft>();
     private HashMap<String, Label> aircraftLabelMap;
+    private HashMap<String, Marker> aircraftMarkerMap;
     private ActiveAircrafts activeAircrafts;
     private ArrayList<Label> aircraftLabelList;
     private BasicAircraft selectedAircraft;
     private int selectedIndex = 0;
     private LeafletMapView mapView;
+    
+    private CompletableFuture<Worker.State> loadState;
+    private ArrayList<Marker> markerList;
+    //private Marker plane;
+    private Marker homeMarker;
     
     final VBox aircraftBox = new VBox();
 
@@ -58,7 +64,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		PlaneDataServer server;
 		
 		if(haveConnection)
-			server = new PlaneDataServer(urlString, latitude, longitude, 150);
+			server = new PlaneDataServer(urlString, latitude, longitude, 50);
 		else
 			server = new PlaneDataServer(latitude, longitude, 100);
 
@@ -96,7 +102,6 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		config.add(MapLayer.OPENSTREETMAP);
 		
 		// Record the load state
-		CompletableFuture<Worker.State> loadState;
 		loadState = mapView.displayMap(
 			new MapConfig(config,
 			new ZoomControlConfig(),
@@ -104,18 +109,32 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 			new LatLong(latitude, longitude)));
 		
 		mapView.setPrefSize(500, 400);
-		Marker position = new Marker(
+		/*Marker position = new Marker(
     			new LatLong(this.currentLat,this.currentLong),
     			"","",0);
 		
-		//For the MapView config
+		*///For the MapView config
 	    loadState.whenComplete((state, throwable) -> {
 	    	// do all map building here
-	    	mapView.addMarker(position);
-	    	//position.addToMap$leafletmap("position", this.mapView);
-	    	mapView.setZoom(1);
+	    	
+	    	mapView.addCustomMarker("HOME", "icons/basestation.png");
+            homeMarker = new Marker(new LatLong(latitude, longitude), "HOME","HOME", 0);
+            mapView.addMarker(homeMarker);
+            
+            mapView.onMapClick((LatLong latlong) -> {
+    	    	// use the new coordinates to reset the map
+            	mapView.mapMove(latlong.getLatitude(), latlong.getLongitude());
+            	System.out.println(latlong.getLatitude()+" "+ latlong.getLongitude());
+    	    	this.homeMarker.move(latlong);
+    	    	this.latitude = latlong.getLatitude();
+    	    	this.longitude = latlong.getLongitude();
+    	    	server.resetLocation(this.latitude, this.longitude, 0);
+    	    });
+            
 	    	});
-		
+	    this.aircraftMarkerMap = new HashMap<String,Marker>();
+	    //reloadMap();
+	    
 		
 		final VBox mapBox = new VBox();
 		mapBox.setSpacing(5);
@@ -145,7 +164,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 					selectedIndex = table.getSelectionModel().getSelectedIndex();
 					
 					selectedAircraft = table.getSelectionModel().getSelectedItem();
-					refresh(selectedAircraft);
+					refresh(selectedAircraft);		
 				}
 			}
 			
@@ -199,29 +218,96 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 	    stage.setOnCloseRequest(e -> System.exit(0));
 	    stage.setScene(scene);
 	    stage.show();
-		
-	    /*
-	    ObservableList<BasicAircraft> selectedItems = table.getSelectionModel().getSelectedItems();
+	}
+	
+	public void reloadMap() {
+		loadState.whenComplete((state, throwable) -> {
+	    	// do all map building here
+			/*if(!this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao())) {
+				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
+				createPlaneMarker(this.aircraftList.get(0));
+				
+				
+			}else {
+				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
+				mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(0).getIcao()));
+				createPlaneMarker(this.aircraftList.get(0));
+				//this.plane.move(new LatLong(this.selectedAircraft.getCoordinate().getLatitude(), this.selectedAircraft.getCoordinate().getLongitude()));
+				
+			}*/
+			//this.markerList.add(plane);
+            
+            for(int i = 0; i < this.aircraftList.size()-1; i++) {
+            	if(!this.aircraftMarkerMap.containsKey(this.aircraftList.get(i).getIcao())) {
+    				createPlaneMarker(this.aircraftList.get(i));
+    			}else {
+    				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
+    				mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao()));
+    				createPlaneMarker(this.aircraftList.get(i));
+    				//this.plane.move(new LatLong(this.selectedAircraft.getCoordinate().getLatitude(), this.selectedAircraft.getCoordinate().getLongitude()));
+    				System.out.println();
+    			}
+            }
+	    	});
+	}
 
-    	selectedItems.addListener(
-    	  new ListChangeListener<BasicAircraft>() {
-    	    @Override
-    	    public void onChanged(
-    	      Change<? extends BasicAircraft> change) {
-    	        //System.out.println(
-    	          //"Selection changed: " + change.getList());
-    	        
-    	        //selectedIndex = table.getSelectionModel().getSelectedIndex();
-    	        selectedAircraft = table.getSelectionModel().getSelectedItem();
-    	        System.out.println("Selection index: " + selectedIndex);
-    	        System.out.println("selected aircraft: " + selectedAircraft);
-    	        refresh(selectedAircraft);
-    	      }
-    	});*/
-	    
-	    
-	    
+	public void createPlaneMarker(BasicAircraft aircraft) {
+		String icon = null;
+		if(aircraft.getTrak()>=352 && aircraft.getTrak()<7) {
+			icon = "icons/plane06.png";
+		}else if(aircraft.getTrak()>=7 && aircraft.getTrak()<22) {
+			icon = "icons/plane05.png";
+		}else if(aircraft.getTrak()>=22 && aircraft.getTrak()<37) {
+			icon = "icons/plane04.png";
+		}else if(aircraft.getTrak()>=37 && aircraft.getTrak()<52) {
+			icon = "icons/plane03.png";
+		}else if(aircraft.getTrak()>=52 && aircraft.getTrak()<67) {
+			icon = "icons/plane02.png";
+		}else if(aircraft.getTrak()>=67 && aircraft.getTrak()<82) {
+			icon = "icons/plane01.png";
+		}else if(aircraft.getTrak()>=82 && aircraft.getTrak()<97) {
+			icon = "icons/plane00.png";
+		}else if(aircraft.getTrak()>=97 && aircraft.getTrak()<112) {
+			icon = "icons/plane23.png";
+		}else if(aircraft.getTrak()>=112 && aircraft.getTrak()<127) {
+			icon = "icons/plane22.png";
+		}else if(aircraft.getTrak()>=127 && aircraft.getTrak()<142) {
+			icon = "icons/plane21.png";
+		}else if(aircraft.getTrak()>=142 && aircraft.getTrak()<157) {
+			icon = "icons/plane20.png";
+		}else if(aircraft.getTrak()>=157 && aircraft.getTrak()<172) {
+			icon = "icons/plane19.png";
+		}else if(aircraft.getTrak()>=172 && aircraft.getTrak()<187) {
+			icon = "icons/plane18.png";
+		}else if(aircraft.getTrak()>=187 && aircraft.getTrak()<202) {
+			icon = "icons/plane17.png";
+		}else if(aircraft.getTrak()>=202 && aircraft.getTrak()<217) {
+			icon = "icons/plane16.png";
+		}else if(aircraft.getTrak()>=217 && aircraft.getTrak()<232) {
+			icon = "icons/plane15.png";
+		}else if(aircraft.getTrak()>=232 && aircraft.getTrak()<247) {
+			icon = "icons/plane14.png";
+		}else if(aircraft.getTrak()>=247 && aircraft.getTrak()<262) {
+			icon = "icons/plane13.png";
+		}else if(aircraft.getTrak()>=262 && aircraft.getTrak()<277) {
+			icon = "icons/plane12.png";
+		}else if(aircraft.getTrak()>=277 && aircraft.getTrak()<292) {
+			icon = "icons/plane11.png";
+		}else if(aircraft.getTrak()>=292 && aircraft.getTrak()<307) {
+			icon = "icons/plane10.png";
+		}else if(aircraft.getTrak()>=307 && aircraft.getTrak()<322) {
+			icon = "icons/plane09.png";
+		}else if(aircraft.getTrak()>=322 && aircraft.getTrak()<337) {
+			icon = "icons/plane08.png";
+		}else if(aircraft.getTrak()>=337 && aircraft.getTrak()<352) {
+			icon = "icons/plane07.png";
+		}
 		
+		mapView.addCustomMarker("PLANE", icon);
+		Marker plane = new Marker(new LatLong(aircraft.getCoordinate().getLatitude(), aircraft.getCoordinate().getLongitude()), aircraft.getIcao(),"PLANE", 0);
+        mapView.addMarker(plane);
+        //aircraft.setMarker(true);
+        this.aircraftMarkerMap.put(aircraft.getIcao(), plane);
 	}
 
 	@Override
@@ -231,11 +317,8 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				// TODO Auto-generated method stub
-				
 				aircraftList.clear();
 				aircraftList.addAll(activeAircrafts.values());
-				
 				
 				table.getSelectionModel().select(selectedIndex);
 				//selectedIndex = table.getSelectionModel().getSelectedIndex();
@@ -244,16 +327,13 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 				//System.out.println("selected aircraft: " + selectedAircraft);
 				//System.out.println("selected index: " + selectedIndex);
 				refresh(selectedAircraft);
+				reloadMap();
 			}
-			
 		});		
 	}
 	
 	public void refresh(BasicAircraft selectedAircraft) {
-		//table.getSelectionModel().select(selectedIndex);
-		
 		aircraftBox.getChildren().clear();
-		
 		final Label aircraftLabel = new Label("Aircraft");
 		aircraftLabel.setFont(new Font("Arial", 20));
 		aircraftBox.getChildren().addAll(aircraftLabel);
@@ -269,8 +349,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 	}
 	
 	public static void main(String[] args) {
-	      launch(args);
-	      
+	      launch(args); 
 	  }
 }
 
