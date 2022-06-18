@@ -2,7 +2,11 @@ package acamo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+import de.saring.leafletmap.*;
 import jsonstream.PlaneDataServer;
 import messer.BasicAircraft;
 import messer.Messer;
@@ -14,6 +18,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -29,8 +34,10 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class Acamo extends Application implements  Observer<BasicAircraft> {
-	private static double latitude = 48.7433425;
-    private static double longitude = 9.3201122;
+	private  double latitude = 48.7433425;
+    private  double longitude = 9.3201122;
+    private  double currentLat = 48.7433425;
+    private  double currentLong = 9.3201122;
     private static boolean haveConnection = true;
     
     private ObservableList<BasicAircraft> aircraftList = FXCollections.observableArrayList(); 
@@ -41,6 +48,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     private ArrayList<Label> aircraftLabelList;
     private BasicAircraft selectedAircraft;
     private int selectedIndex = 0;
+    private LeafletMapView mapView;
     
     final VBox aircraftBox = new VBox();
 
@@ -66,6 +74,54 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		messer.addObserver(activeAircrafts);
 		messer.addObserver(this);
 		
+		//for map View
+		
+		/*LeafletMapView map = new LeafletMapView();
+		
+		LatLong position = new LatLong(this.latitude, this.longitude);
+		MapConfig config = new MapConfig();
+		//map.setView(position, 10);
+		map.setPrefSize(500, 500);
+		
+		map.displayMap(config);
+		
+		map.setView(position, 10);
+		//map.setView(position, 18);*/
+		
+		mapView = new LeafletMapView();
+		mapView.setLayoutX(0);
+		mapView.setLayoutY(0);
+		mapView.setMaxWidth(640);
+		List<MapLayer> config = new LinkedList<>();
+		config.add(MapLayer.OPENSTREETMAP);
+		
+		// Record the load state
+		CompletableFuture<Worker.State> loadState;
+		loadState = mapView.displayMap(
+			new MapConfig(config,
+			new ZoomControlConfig(),
+			new ScaleControlConfig(),
+			new LatLong(latitude, longitude)));
+		
+		mapView.setPrefSize(500, 400);
+		Marker position = new Marker(
+    			new LatLong(this.currentLat,this.currentLong),
+    			"","",0);
+		
+		//For the MapView config
+	    loadState.whenComplete((state, throwable) -> {
+	    	// do all map building here
+	    	mapView.addMarker(position);
+	    	//position.addToMap$leafletmap("position", this.mapView);
+	    	mapView.setZoom(1);
+	    	});
+		
+		
+		final VBox mapBox = new VBox();
+		mapBox.setSpacing(5);
+		mapBox.setPadding(new Insets(10,0,0,10));
+		mapBox.getChildren().addAll(mapView,table);
+		//For table
 		fields = BasicAircraft.getAttributesNames();
 		
 		for(int i = 0; i<fields.size(); i++) {//set columns
@@ -80,7 +136,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		table.autosize();
 		table.setPlaceholder(new Label("Waiting for Planes"));
 		
-		table.setOnMousePressed(new EventHandler<MouseEvent>() {
+		table.setOnMousePressed(new EventHandler<MouseEvent>() {//Add event handler for selected aircraft
 
 			@Override
 			public void handle(MouseEvent event) {
@@ -123,21 +179,13 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		
 		aircraftBox.setSpacing(5);
 		aircraftBox.setPadding(new Insets(10,0,0,10));
-		
-		/*//final LabelList aircraft
-		for(int i = 0; i<fields.size(); i++) {
-			aircraftLabelMap.put(fields.get(i), aircraftLabel);
-			aircraftLabelList.add(aircraftLabel);
-		}*/
-		//aircraftBox.getChildren().addAll(aircraftLabelList);
 		aircraftBox.getChildren().addAll(aircraftLabel);
 		
 		HBox root = new HBox();
 		root.setSpacing(10);
 		root.setPadding(new Insets(15,20,10,10));
 		
-		root.getChildren().addAll(tableBox,selectedBox,aircraftBox);
-		
+		root.getChildren().addAll(mapBox,tableBox,selectedBox,aircraftBox);
 		
 		//create layout of the table and pane for selected aircraft
 		
@@ -151,9 +199,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 	    stage.setOnCloseRequest(e -> System.exit(0));
 	    stage.setScene(scene);
 	    stage.show();
-		//Add event handler for selected aircraft
-	    
-	    
+		
 	    /*
 	    ObservableList<BasicAircraft> selectedItems = table.getSelectionModel().getSelectedItems();
 
@@ -172,6 +218,9 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     	        refresh(selectedAircraft);
     	      }
     	});*/
+	    
+	    
+	    
 		
 	}
 
