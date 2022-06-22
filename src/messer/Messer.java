@@ -17,7 +17,7 @@ public class Messer extends SimpleObservable<BasicAircraft> implements Observer<
 	//LINKED BLOCKING QUEUE
 	
 	public Messer() {
-		buffer = new ArrayBlockingQueue<AircraftSentence>(20);
+		buffer = new ArrayBlockingQueue<AircraftSentence>(100);
 	}
 	
 	@Override

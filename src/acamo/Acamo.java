@@ -19,12 +19,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -44,7 +47,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     private ArrayList<String> fields;
     private TableView<BasicAircraft> table = new TableView<BasicAircraft>();
     private HashMap<String, Label> aircraftLabelMap;
-    private HashMap<String, Marker> aircraftMarkerMap;
+    private HashMap<String, Marker> aircraftMarkerMap = new HashMap<String,Marker>();;
     private ActiveAircrafts activeAircrafts;
     private ArrayList<Label> aircraftLabelList;
     private BasicAircraft selectedAircraft;
@@ -55,6 +58,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
     private ArrayList<Marker> markerList;
     //private Marker plane;
     private Marker homeMarker;
+    private int markerNumber;
     
     final VBox aircraftBox = new VBox();
 
@@ -64,7 +68,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		PlaneDataServer server;
 		
 		if(haveConnection)
-			server = new PlaneDataServer(urlString, latitude, longitude, 50);
+			server = new PlaneDataServer(urlString, latitude, longitude, 70);
 		else
 			server = new PlaneDataServer(latitude, longitude, 100);
 
@@ -109,37 +113,52 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 			new LatLong(latitude, longitude)));
 		
 		mapView.setPrefSize(500, 400);
-		/*Marker position = new Marker(
-    			new LatLong(this.currentLat,this.currentLong),
-    			"","",0);
 		
-		*///For the MapView config
+		//For the MapView config
 	    loadState.whenComplete((state, throwable) -> {
-	    	// do all map building here
-	    	
 	    	mapView.addCustomMarker("HOME", "icons/basestation.png");
             homeMarker = new Marker(new LatLong(latitude, longitude), "HOME","HOME", 0);
             mapView.addMarker(homeMarker);
             
             mapView.onMapClick((LatLong latlong) -> {
     	    	// use the new coordinates to reset the map
-            	mapView.mapMove(latlong.getLatitude(), latlong.getLongitude());
-            	System.out.println(latlong.getLatitude()+" "+ latlong.getLongitude());
-    	    	this.homeMarker.move(latlong);
-    	    	this.latitude = latlong.getLatitude();
-    	    	this.longitude = latlong.getLongitude();
-    	    	server.resetLocation(this.latitude, this.longitude, 0);
-    	    });
+            	restartServer(latlong,server);
+    	    	});
             
 	    	});
-	    this.aircraftMarkerMap = new HashMap<String,Marker>();
-	    //reloadMap();
 	    
-		
 		final VBox mapBox = new VBox();
 		mapBox.setSpacing(5);
 		mapBox.setPadding(new Insets(10,0,0,10));
-		mapBox.getChildren().addAll(mapView,table);
+		
+		// Button 1
+		Button button1 = new Button("Send");
+		
+		// TextField
+		TextField textField1 = new TextField("Latitude");
+		textField1.setPrefWidth(110);
+		// TextField
+		TextField textField2 = new TextField("Longitude");
+		textField2.setPrefWidth(110);
+		//textField2.setText("");
+		
+		Label latitudeLabel = new Label("Latitude");
+		latitudeLabel.setFont(new Font("Arial", 12));
+		Label longitudeLabel = new Label("Longitude");
+		longitudeLabel.setFont(new Font("Arial", 12));
+		
+		button1.setOnAction(new EventHandler<ActionEvent>() {
+		    @Override public void handle(ActionEvent e) {
+		        //label.setText("Accepted");
+		    	LatLong latlong = new LatLong(Double.parseDouble(textField1.getText()),Double.parseDouble(textField2.getText()));
+		    	restartServer(latlong,server);
+		    }
+		});
+		
+		mapBox.getChildren().addAll(mapView,latitudeLabel,textField1,longitudeLabel, textField2, button1, table);
+		
+		//button1.add
+		
 		//For table
 		fields = BasicAircraft.getAttributesNames();
 		
@@ -156,7 +175,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 		table.setPlaceholder(new Label("Waiting for Planes"));
 		
 		table.setOnMousePressed(new EventHandler<MouseEvent>() {//Add event handler for selected aircraft
-
+			
 			@Override
 			public void handle(MouseEvent event) {
 				// TODO Auto-generated method stub
@@ -164,6 +183,7 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 					selectedIndex = table.getSelectionModel().getSelectedIndex();
 					
 					selectedAircraft = table.getSelectionModel().getSelectedItem();
+					//aircraftMarkerMap.clear();
 					refresh(selectedAircraft);		
 				}
 			}
@@ -222,92 +242,103 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 	
 	public void reloadMap() {
 		loadState.whenComplete((state, throwable) -> {
-	    	// do all map building here
-			/*if(!this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao())) {
-				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
-				createPlaneMarker(this.aircraftList.get(0));
-				
-				
-			}else {
-				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
-				mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(0).getIcao()));
-				createPlaneMarker(this.aircraftList.get(0));
-				//this.plane.move(new LatLong(this.selectedAircraft.getCoordinate().getLatitude(), this.selectedAircraft.getCoordinate().getLongitude()));
-				
-			}*/
-			//this.markerList.add(plane);
-            
-            for(int i = 0; i < this.aircraftList.size()-1; i++) {
+	    	
+            for(int i = 0; i < this.aircraftList.size(); i++) {
             	if(!this.aircraftMarkerMap.containsKey(this.aircraftList.get(i).getIcao())) {
-    				createPlaneMarker(this.aircraftList.get(i));
+            		createPlaneMarker(this.aircraftList.get(i));
+    				this.markerNumber++;
+    				System.out.println(this.markerNumber + "," + this.aircraftList.size()+ "," +i);
     			}else {
-    				//System.out.println(this.aircraftMarkerMap.containsKey(this.aircraftList.get(0).getIcao()));
-    				mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao()));
-    				createPlaneMarker(this.aircraftList.get(i));
-    				//this.plane.move(new LatLong(this.selectedAircraft.getCoordinate().getLatitude(), this.selectedAircraft.getCoordinate().getLongitude()));
-    				System.out.println();
+    				//mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao()));
+    				//createPlaneMarker(this.aircraftList.get(i));
+    				    				
+    				Marker move = this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao());
+    				move.move(new LatLong(this.aircraftList.get(i).getCoordinate().getLatitude(),this.aircraftList.get(i).getCoordinate().getLongitude()));
+    				System.out.println("moved"+this.aircraftList.get(i).getIcao());
+    				//System.out.println(this.markerNumber+ "," + this.aircraftList.size()+ "," +i);
     			}
             }
-	    	});
+    	});
+	}
+	
+	public void restartServer(LatLong latlong, PlaneDataServer server) {
+		for(int i=0; i<this.aircraftList.size();i++) {
+    		mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao()));
+    	}
+    	this.aircraftList.clear();
+    	server.resetLocation(latlong.getLatitude(), latlong.getLongitude(), 70);
+    	
+    	mapView.panTo(latlong);
+    	System.out.println(latlong.getLatitude()+" "+ latlong.getLongitude());
+    	this.homeMarker.move(latlong);
+    	this.latitude = latlong.getLatitude();
+    	this.longitude = latlong.getLongitude();
 	}
 
 	public void createPlaneMarker(BasicAircraft aircraft) {
-		String icon = null;
-		if(aircraft.getTrak()>=352 && aircraft.getTrak()<7) {
+		String icon = "icons/plane06.png";
+		double trak = aircraft.getTrak();
+		if(trak>=352 && trak<360 || trak>=0 && trak<7) {
 			icon = "icons/plane06.png";
-		}else if(aircraft.getTrak()>=7 && aircraft.getTrak()<22) {
+		}else if(trak>=7 && trak<22) {
 			icon = "icons/plane05.png";
-		}else if(aircraft.getTrak()>=22 && aircraft.getTrak()<37) {
+		}else if(trak>=22 && trak<37) {
 			icon = "icons/plane04.png";
-		}else if(aircraft.getTrak()>=37 && aircraft.getTrak()<52) {
+		}else if(trak>=37 && trak<52) {
 			icon = "icons/plane03.png";
-		}else if(aircraft.getTrak()>=52 && aircraft.getTrak()<67) {
+		}else if(trak>=52 && trak<67) {
 			icon = "icons/plane02.png";
-		}else if(aircraft.getTrak()>=67 && aircraft.getTrak()<82) {
+		}else if(trak>=67 && trak<82) {
 			icon = "icons/plane01.png";
-		}else if(aircraft.getTrak()>=82 && aircraft.getTrak()<97) {
+		}else if(trak>=82 && trak<97) {
 			icon = "icons/plane00.png";
-		}else if(aircraft.getTrak()>=97 && aircraft.getTrak()<112) {
+		}else if(trak>=97 && trak<112) {
 			icon = "icons/plane23.png";
-		}else if(aircraft.getTrak()>=112 && aircraft.getTrak()<127) {
+		}else if(trak>=112 && trak<127) {
 			icon = "icons/plane22.png";
-		}else if(aircraft.getTrak()>=127 && aircraft.getTrak()<142) {
+		}else if(trak>=127 && trak<142) {
 			icon = "icons/plane21.png";
-		}else if(aircraft.getTrak()>=142 && aircraft.getTrak()<157) {
+		}else if(trak>=142 && trak<157) {
 			icon = "icons/plane20.png";
-		}else if(aircraft.getTrak()>=157 && aircraft.getTrak()<172) {
+		}else if(trak>=157 && trak<172) {
 			icon = "icons/plane19.png";
-		}else if(aircraft.getTrak()>=172 && aircraft.getTrak()<187) {
+		}else if(trak>=172 && trak<187) {
 			icon = "icons/plane18.png";
-		}else if(aircraft.getTrak()>=187 && aircraft.getTrak()<202) {
+		}else if(trak>=187 && trak<202) {
 			icon = "icons/plane17.png";
-		}else if(aircraft.getTrak()>=202 && aircraft.getTrak()<217) {
+		}else if(trak>=202 && trak<217) {
 			icon = "icons/plane16.png";
-		}else if(aircraft.getTrak()>=217 && aircraft.getTrak()<232) {
+		}else if(trak>=217 && trak<232) {
 			icon = "icons/plane15.png";
-		}else if(aircraft.getTrak()>=232 && aircraft.getTrak()<247) {
+		}else if(trak>=232 && trak<247) {
 			icon = "icons/plane14.png";
-		}else if(aircraft.getTrak()>=247 && aircraft.getTrak()<262) {
+		}else if(trak>=247 && trak<262) {
 			icon = "icons/plane13.png";
-		}else if(aircraft.getTrak()>=262 && aircraft.getTrak()<277) {
+		}else if(trak>=262 && trak<277) {
 			icon = "icons/plane12.png";
-		}else if(aircraft.getTrak()>=277 && aircraft.getTrak()<292) {
+		}else if(trak>=277 && trak<292) {
 			icon = "icons/plane11.png";
-		}else if(aircraft.getTrak()>=292 && aircraft.getTrak()<307) {
+		}else if(trak>=292 && trak<307) {
 			icon = "icons/plane10.png";
-		}else if(aircraft.getTrak()>=307 && aircraft.getTrak()<322) {
+		}else if(trak>=307 && trak<322) {
 			icon = "icons/plane09.png";
-		}else if(aircraft.getTrak()>=322 && aircraft.getTrak()<337) {
+		}else if(trak>=322 && trak<337) {
 			icon = "icons/plane08.png";
-		}else if(aircraft.getTrak()>=337 && aircraft.getTrak()<352) {
+		}else if(trak>=337 && trak<352) {
 			icon = "icons/plane07.png";
+		}else {
+			System.out.println("ERROR: "+trak);
 		}
 		
 		mapView.addCustomMarker("PLANE", icon);
+		//System.out.println("marker defined");
 		Marker plane = new Marker(new LatLong(aircraft.getCoordinate().getLatitude(), aircraft.getCoordinate().getLongitude()), aircraft.getIcao(),"PLANE", 0);
-        mapView.addMarker(plane);
+		//System.out.println("marker made");
+		mapView.addMarker(plane);
+        //System.out.println("aircraft added to map");
         //aircraft.setMarker(true);
         this.aircraftMarkerMap.put(aircraft.getIcao(), plane);
+        //System.out.println("aircraft done");
 	}
 
 	@Override
@@ -351,5 +382,23 @@ public class Acamo extends Application implements  Observer<BasicAircraft> {
 	public static void main(String[] args) {
 	      launch(args); 
 	  }
+	
 }
+
+
+
+/*51.33061163769853 6.8115234375
+ * /*
+            	for(int i=0; i<this.aircraftList.size();i++) {
+            		mapView.removeMarker(this.aircraftMarkerMap.get(this.aircraftList.get(i).getIcao()));
+            	}
+            	this.aircraftList.clear();
+            	server.resetLocation(latlong.getLatitude(), latlong.getLongitude(), 70);
+            	
+            	mapView.mapMove(latlong.getLatitude(), latlong.getLongitude());
+            	System.out.println(latlong.getLatitude()+" "+ latlong.getLongitude());
+    	    	this.homeMarker.move(latlong);
+    	    	this.latitude = latlong.getLatitude();
+    	    	this.longitude = latlong.getLongitude();
+    	    	*/
 
