@@ -1,7 +1,7 @@
 # OOS2
 Repository containing Objekt Orientierte Systeme 2 files and projects
 
-##Project files
+## Project files
 Main file to run to see full project is Acamo.java under the Acamo package of the OOS2 Lab SWB directory
 This file has dependencies on the Messer, Observer and Senser packages and the javafx library
 
